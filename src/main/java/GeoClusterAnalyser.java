@@ -61,6 +61,15 @@ class GeoClusterAnalyser {
     private void initialiseGeoBlock(int width, int height) {
         geoBlock = new int[width][height];
 
+        /* All elements in a 2D array upon initialisation are default set to the value 0.
+         * Because we need to differentiate from our GeoID 0 being at index[0][0], the default value must be something
+         * other than 0. Therefore, setting it to -1 allows us to differentiate if this Geo is occupied or not.*/
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                geoBlock[x][y] = -1;
+            }
+        }
+
         //Loop through the geo entries and enter the occupied Geos to the geoBlock
         for (GeoEntry geoEntry : geoEntries) {
             geoBlock[geoEntry.getGeoCoordinates(width, height).getCol()][geoEntry.getGeoCoordinates(width, height).getRow()] = geoEntry.getGeoID();
@@ -79,7 +88,7 @@ class GeoClusterAnalyser {
 
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                if (geoBlock[x][y] != 0) {
+                if (geoBlock[x][y] != -1) {
                     tempGeoCluster = findConnectingGeos(x, y, null);
 
                     // if the temporary cluster being visited is larger than the current largest, a larger cluster has been found
@@ -174,15 +183,15 @@ class GeoClusterAnalyser {
     /**
      * Read in the contents of the .csv file and store each line as a GeoEntry object in a List
      *
-     * @param width - width of the GeoBlock
-     * @param height - height of the GeoBlock
+     * @param width   - width of the GeoBlock
+     * @param height  - height of the GeoBlock
      * @param csvFile - the name of the csv file
      */
     private void readCSVFile(int width, int height, String csvFile) {
         BufferedReader bufferedReader = null;
         String line, csvSplitter = ",";
         int rowCounter = 0;
-        int maxGeoID = (width * height) - 1;    // the maximum GeoID possible within the GeoBlock width and height constraints
+        int maxGeoID = (width * height) - 1; // the maximum GeoID possible within the GeoBlock width and height constraints
 
         try {
             bufferedReader = new BufferedReader(new FileReader(csvFile));
@@ -192,24 +201,35 @@ class GeoClusterAnalyser {
                 // use comma as separator
                 String[] input = line.split(csvSplitter);
 
+                if (input.length != 3) {
+                    System.out.println("Error in CSV File: row " + rowCounter + " " +
+                            "(Insufficient data: Each row should contain 3 data points GeoID, Occupier's Name, Date Geo was occupied)");
+                    System.exit(1);
+                }
+
                 // If the GeoID is greater than the maximum GeoID calculated
                 // then the csv file data is incorrect and should display an error
-                if(Integer.valueOf(input[0]) > maxGeoID){
-                    System.out.println("Error in CSV File: row " + rowCounter + " (Invalid value: GeoID: " + Integer.valueOf(input[0]) + " is too high for the given GeoBlock constraints " + width + "x" + height);
+                if (Integer.valueOf(input[0]) > maxGeoID) {
+                    System.out.println("Error in CSV File: row " +
+                            rowCounter + " (Invalid value: GeoID: " + Integer.valueOf(input[0]) +
+                            " is too high for the given GeoBlock constraints " + width + "x" + height);
                     System.exit(1);
                 }
 
                 // Occupier's name data input is too short. Less than 2 for a valid name
                 if (input[1].trim().length() < 2) {
-                    System.out.println("Error in CSV file: row " + rowCounter + " (Data input too short: Occupier's name needs to be longer than one character)");
+                    System.out.println("Error in CSV file: row " + rowCounter +
+                            " (Data input too short: Occupier's name needs to be longer than one character)");
                     System.exit(1);
                 }
                 // Date should be
-                if (input[2].trim().length() > 10) {
-                    System.out.println("Error in CSV file: row " + rowCounter + " (Data input too long: Date should be in YYYY-MM-DD format)");
+                if (input[2].trim().length() < 10) {
+                    System.out.println("Error in CSV file: row " + rowCounter +
+                            " (Data input too long: Date should be in YYYY-MM-DD format)");
                     System.exit(1);
-                } else if (input[2].trim().length() < 10) {
-                    System.out.println("Error in CSV file: row " + rowCounter + " (Data input too short: Date should be in YYYY-MM-DD format)");
+                } else if (input[2].trim().length() > 10) {
+                    System.out.println("Error in CSV file: row " + rowCounter +
+                            " (Data input too short: Date should be in YYYY-MM-DD format)");
                     System.exit(1);
                 }
 
@@ -224,7 +244,8 @@ class GeoClusterAnalyser {
             System.out.println("Error in CSV file: row " + rowCounter + " (Invalid value: Geo ID should be an integer)");
             System.exit(1);
         } catch (DateTimeParseException e) {
-            System.out.println("Error in CSV file: row " + rowCounter + " (Invalid value: Date should be in YYYY-MM-DD format)");
+            System.out.println("Error in CSV file: row " + rowCounter +
+                    " (Invalid value: Date should be in YYYY-MM-DD format)");
             System.exit(1);
         } finally {
             if (bufferedReader != null) {
