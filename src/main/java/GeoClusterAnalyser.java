@@ -15,7 +15,6 @@ class GeoClusterAnalyser {
 
     private int width, height;
 
-    //todo: Geoblock size too small or large on args input
     public static void main(String[] args) {
         long startTime = System.nanoTime();
 
@@ -34,7 +33,7 @@ class GeoClusterAnalyser {
         }
 
         // Read in the contents of the csv file
-        geoClusterAnalyser.readCSVFile(args[2]);
+        geoClusterAnalyser.readCSVFile(geoClusterAnalyser.width, geoClusterAnalyser.height, args[2]);
 
         // initialise the GeoBlock
         geoClusterAnalyser.initialiseGeoBlock(geoClusterAnalyser.width, geoClusterAnalyser.height);
@@ -175,12 +174,15 @@ class GeoClusterAnalyser {
     /**
      * Read in the contents of the .csv file and store each line as a GeoEntry object in a List
      *
+     * @param width - width of the GeoBlock
+     * @param height - height of the GeoBlock
      * @param csvFile - the name of the csv file
      */
-    private void readCSVFile(String csvFile) {
+    private void readCSVFile(int width, int height, String csvFile) {
         BufferedReader bufferedReader = null;
         String line, csvSplitter = ",";
         int rowCounter = 0;
+        int maxGeoID = (width * height) - 1;    // the maximum GeoID possible within the GeoBlock width and height constraints
 
         try {
             bufferedReader = new BufferedReader(new FileReader(csvFile));
@@ -190,12 +192,19 @@ class GeoClusterAnalyser {
                 // use comma as separator
                 String[] input = line.split(csvSplitter);
 
-                // error handling - Occupier's name data input is too short. Less than 2 for a valid name
+                // If the GeoID is greater than the maximum GeoID calculated
+                // then the csv file data is incorrect and should display an error
+                if(Integer.valueOf(input[0]) > maxGeoID){
+                    System.out.println("Error in CSV File: row " + rowCounter + " (Invalid value: GeoID: " + Integer.valueOf(input[0]) + " is too high for the given GeoBlock constraints " + width + "x" + height);
+                    System.exit(1);
+                }
+
+                // Occupier's name data input is too short. Less than 2 for a valid name
                 if (input[1].trim().length() < 2) {
                     System.out.println("Error in CSV file: row " + rowCounter + " (Data input too short: Occupier's name needs to be longer than one character)");
                     System.exit(1);
                 }
-                // error handling - Date should be
+                // Date should be
                 if (input[2].trim().length() > 10) {
                     System.out.println("Error in CSV file: row " + rowCounter + " (Data input too long: Date should be in YYYY-MM-DD format)");
                     System.exit(1);
