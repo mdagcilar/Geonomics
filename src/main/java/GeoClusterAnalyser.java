@@ -1,3 +1,5 @@
+import org.omg.IOP.CodecPackage.InvalidTypeForEncoding;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -62,9 +64,16 @@ class GeoClusterAnalyser {
         geoBlock = new int[width][height];
 
         /* All elements in a 2D array upon initialisation are default set to the value 0.
-         * Because we need to differentiate from our GeoID 0 being at index[0][0], the default value must be something
-         * other than 0. Therefore, initially every value was set to -1 which allows us to differentiate if this Geo is occupied or not.*/
+
+         * If an occupied Geo with the ID 0 is found. There must be a way to differentiate from it being occupied
+         * and just the default value in the array. Therefore, we intialise the value of geoBlock[0][0] be set to -1.
+         * And in the getLargestCluster() method, an initial edge case check is performed to check if the value is not
+         * the altered default value (-1).
+         *
+         * A different approach would be to set all values to -1, and then there would be no edge case. However, in a
+         * large GeoBlock instance such as 10,000 by 10,000 this can be a time timing consuming task */
         geoBlock[0][0] = -1;
+
         //Loop through the geo entries and enter the occupied Geos to the geoBlock
         for (GeoEntry geoEntry : geoEntries) {
             geoBlock[geoEntry.getGeoCoordinates(width, height).getCol()][geoEntry.getGeoCoordinates(width, height).getRow()] = geoEntry.getGeoID();
@@ -81,10 +90,14 @@ class GeoClusterAnalyser {
     private List<Integer> getLargestCluster() {
         List<Integer> tempGeoCluster;
 
+        // Edge case for when there is a GeoID at [0,0] - details in initialiseGeoBlock() method.
+        if (geoBlock[0][0] != -1) {
+            largestCluster = findConnectingGeos(0, 0, null);
+        }
+
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                if (geoBlock[x][y] != 0 && geoBlock[x][y] != -1
-                        || (x == 0 && y == 0 && geoBlock[0][0] != -1)) {
+                if (geoBlock[x][y] != 0 && geoBlock[x][y] != -1) {
                     tempGeoCluster = findConnectingGeos(x, y, null);
 
                     // if the temporary cluster being visited is larger than the current largest, a larger cluster has been found
@@ -185,7 +198,9 @@ class GeoClusterAnalyser {
      */
     private void readCSVFile(int width, int height, String csvFile) {
         BufferedReader bufferedReader = null;
-        String line, csvSplitter = ",";
+        List<Integer> geoIDs = new ArrayList<>();
+
+        String line, csvSplitter = ",";   // use comma as separator
         int rowCounter = 0;
         int maxGeoID = (width * height) - 1; // the maximum GeoID possible within the GeoBlock width and height constraints
 
@@ -193,30 +208,42 @@ class GeoClusterAnalyser {
             bufferedReader = new BufferedReader(new FileReader(csvFile));
 
             while ((line = bufferedReader.readLine()) != null) {
-                rowCounter++;
-                // use comma as separator
                 String[] input = line.split(csvSplitter);
+                int geoID = Integer.valueOf(input[0]);  //
+                rowCounter++;
 
-                if (input.length != 3) {
+                if (input.length != 3) {    // Each line should contain 3 data points
                     System.out.println("Error in CSV File: row " + rowCounter + " " +
                             "(Insufficient data: Each row should contain 3 data points GeoID, Occupier's Name, Date Geo was occupied)");
                     System.exit(1);
                 }
-                // If the GeoID is greater than the maximum GeoID calculated
-                // then the csv file data is incorrect and should display an error
-                if (Integer.valueOf(input[0]) > maxGeoID) {
+
+                /* If the GeoID is greater than the maximum GeoID calculated
+                 * then the csv file data is incorrect and should display an error */
+                if (geoID > maxGeoID) {
                     System.out.println("Error in CSV File: row " +
-                            rowCounter + " (Invalid value: GeoID: " + Integer.valueOf(input[0]) +
+                            rowCounter + " (Invalid value: GeoID: " + geoID +
                             " is too high for the given GeoBlock constraints " + width + "x" + height);
                     System.exit(1);
+                } else if (geoIDs.contains(geoID)) {
+                    // Checks if there are any duplicate GeoIDs
+                    System.out.println("Error in CSV file: row " + rowCounter +
+                            " (Duplicate GeoID: " + geoID + " entered");
+                    System.exit(1);
                 }
+                geoIDs.add(geoID);
+
                 // Occupier's name data input is too short. Less than 2 for a valid name
                 if (input[1].trim().length() < 2) {
                     System.out.println("Error in CSV file: row " + rowCounter +
                             " (Data input too short: Occupier's name needs to be longer than one character)");
                     System.exit(1);
                 }
-                // Date should be
+
+                /* Date should be in YYYY-MM-DD format which is 10 characters long.
+                 * The input is also parsed it into a LocalDate object when adding it to 'geoEntries' List.
+                 * This try block will catch a DateTimeParseException below and
+                 * respond to the user with the appropriate error message */
                 if (input[2].trim().length() < 10) {
                     System.out.println("Error in CSV file: row " + rowCounter +
                             " (Data input too long: Date should be in YYYY-MM-DD format)");
