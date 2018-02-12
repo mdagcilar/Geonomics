@@ -63,12 +63,8 @@ class GeoClusterAnalyser {
 
         /* All elements in a 2D array upon initialisation are default set to the value 0.
          * Because we need to differentiate from our GeoID 0 being at index[0][0], the default value must be something
-         * other than 0. Therefore, setting it to -1 allows us to differentiate if this Geo is occupied or not.*/
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                geoBlock[x][y] = -1;
-            }
-        }
+         * other than 0. Therefore, initially every value was set to -1 which allows us to differentiate if this Geo is occupied or not.*/
+        geoBlock[0][0] = -1;
         //Loop through the geo entries and enter the occupied Geos to the geoBlock
         for (GeoEntry geoEntry : geoEntries) {
             geoBlock[geoEntry.getGeoCoordinates(width, height).getCol()][geoEntry.getGeoCoordinates(width, height).getRow()] = geoEntry.getGeoID();
@@ -87,7 +83,8 @@ class GeoClusterAnalyser {
 
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                if (geoBlock[x][y] != -1) {
+                if (geoBlock[x][y] != 0 && geoBlock[x][y] != -1
+                        || (x == 0 && y == 0 && geoBlock[0][0] != -1)) {
                     tempGeoCluster = findConnectingGeos(x, y, null);
 
                     // if the temporary cluster being visited is larger than the current largest, a larger cluster has been found
@@ -124,7 +121,7 @@ class GeoClusterAnalyser {
         // check if any of the 4 neighboring Geos are occupied (not 0).
         // recursively check each non-null Geo for their connecting neighbors to build the cluster
         if (y != height - 1) {
-            if (geoBlock[x][y + 1] != -1) {      // up
+            if (geoBlock[x][y + 1] != 0 && geoBlock[x][y + 1] != -1) {      // up
                 if (!tempGeoCluster.contains(geoBlock[x][y + 1])) { // avoid stackOverflow exception by recursively re-checking nodes that are already in the cluster.
                     tempGeoCluster.add(geoBlock[x][y + 1]);
                     findConnectingGeos(x, y + 1, tempGeoCluster);
@@ -132,7 +129,7 @@ class GeoClusterAnalyser {
             }
         }
         if (x != width - 1) {
-            if (geoBlock[x + 1][y] != -1) {      // right
+            if (geoBlock[x + 1][y] != 0 && geoBlock[x + 1][y] != -1) {      // right
                 if (!tempGeoCluster.contains(geoBlock[x + 1][y])) {
                     tempGeoCluster.add(geoBlock[x + 1][y]);
                     findConnectingGeos(x + 1, y, tempGeoCluster);
@@ -140,7 +137,7 @@ class GeoClusterAnalyser {
             }
         }
         if (y != 0) {
-            if (geoBlock[x][y - 1] != -1) {      // down
+            if (geoBlock[x][y - 1] != 0 && geoBlock[x][y - 1] != -1) {      // down
                 if (!tempGeoCluster.contains(geoBlock[x][y - 1])) {
                     tempGeoCluster.add(geoBlock[x][y - 1]);
                     findConnectingGeos(x, y - 1, tempGeoCluster);
@@ -148,7 +145,7 @@ class GeoClusterAnalyser {
             }
         }
         if (x != 0) {
-            if (geoBlock[x - 1][y] != -1) {  // left
+            if (geoBlock[x - 1][y] != 0 && geoBlock[x - 1][y] != -1) {  // left
                 if (!tempGeoCluster.contains(geoBlock[x - 1][y])) {
                     tempGeoCluster.add(geoBlock[x - 1][y]);
                     findConnectingGeos(x - 1, y, tempGeoCluster);
