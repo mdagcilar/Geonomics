@@ -125,7 +125,7 @@ class GeoClusterAnalyser {
         // check if any of the 4 neighboring Geos are occupied (not 0).
         // recursively check each non-null Geo for their connecting neighbors to build the cluster
         if (y != height - 1) {
-            if (geoBlock[x][y + 1] != 0) {      // up
+            if (geoBlock[x][y + 1] != -1) {      // up
                 if (!tempGeoCluster.contains(geoBlock[x][y + 1])) { // avoid stackOverflow exception by recursively re-checking nodes that are already in the cluster.
                     tempGeoCluster.add(geoBlock[x][y + 1]);
                     findConnectingGeos(x, y + 1, tempGeoCluster);
@@ -133,7 +133,7 @@ class GeoClusterAnalyser {
             }
         }
         if (x != width - 1) {
-            if (geoBlock[x + 1][y] != 0) {      // right
+            if (geoBlock[x + 1][y] != -1) {      // right
                 if (!tempGeoCluster.contains(geoBlock[x + 1][y])) {
                     tempGeoCluster.add(geoBlock[x + 1][y]);
                     findConnectingGeos(x + 1, y, tempGeoCluster);
@@ -141,7 +141,7 @@ class GeoClusterAnalyser {
             }
         }
         if (y != 0) {
-            if (geoBlock[x][y - 1] != 0) {      // down
+            if (geoBlock[x][y - 1] != -1) {      // down
                 if (!tempGeoCluster.contains(geoBlock[x][y - 1])) {
                     tempGeoCluster.add(geoBlock[x][y - 1]);
                     findConnectingGeos(x, y - 1, tempGeoCluster);
@@ -149,7 +149,7 @@ class GeoClusterAnalyser {
             }
         }
         if (x != 0) {
-            if (geoBlock[x - 1][y] != 0) {  // left
+            if (geoBlock[x - 1][y] != -1) {  // left
                 if (!tempGeoCluster.contains(geoBlock[x - 1][y])) {
                     tempGeoCluster.add(geoBlock[x - 1][y]);
                     findConnectingGeos(x - 1, y, tempGeoCluster);
