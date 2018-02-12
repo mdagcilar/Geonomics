@@ -26,7 +26,7 @@ class GeoClusterAnalyser {
         GeoClusterAnalyser geoClusterAnalyser = new GeoClusterAnalyser();
         try {
             geoClusterAnalyser.width = Integer.valueOf(args[0]);
-            geoClusterAnalyser.height = Integer.valueOf(args[0]);
+            geoClusterAnalyser.height = Integer.valueOf(args[1]);
         } catch (NumberFormatException e) {
             System.out.println("Width and Height of GeoBlock should be Integers");
             System.exit(1);
@@ -69,7 +69,6 @@ class GeoClusterAnalyser {
                 geoBlock[x][y] = -1;
             }
         }
-
         //Loop through the geo entries and enter the occupied Geos to the geoBlock
         for (GeoEntry geoEntry : geoEntries) {
             geoBlock[geoEntry.getGeoCoordinates(width, height).getCol()][geoEntry.getGeoCoordinates(width, height).getRow()] = geoEntry.getGeoID();
@@ -206,7 +205,6 @@ class GeoClusterAnalyser {
                             "(Insufficient data: Each row should contain 3 data points GeoID, Occupier's Name, Date Geo was occupied)");
                     System.exit(1);
                 }
-
                 // If the GeoID is greater than the maximum GeoID calculated
                 // then the csv file data is incorrect and should display an error
                 if (Integer.valueOf(input[0]) > maxGeoID) {
@@ -215,7 +213,6 @@ class GeoClusterAnalyser {
                             " is too high for the given GeoBlock constraints " + width + "x" + height);
                     System.exit(1);
                 }
-
                 // Occupier's name data input is too short. Less than 2 for a valid name
                 if (input[1].trim().length() < 2) {
                     System.out.println("Error in CSV file: row " + rowCounter +

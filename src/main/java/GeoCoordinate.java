@@ -1,9 +1,9 @@
 class GeoCoordinate {
     private int row, col;
 
-    GeoCoordinate(int row, int col) {
-        this.row = row;
+    GeoCoordinate(int col, int row) {
         this.col = col;
+        this.row = row;
     }
 
     public int getRow() {

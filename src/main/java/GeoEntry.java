@@ -30,9 +30,9 @@ class GeoEntry {
      * @return - x, y coordinate of the GeoID in a 2D array
      */
     public GeoCoordinate getGeoCoordinates(int width, int height) {
-        int col = geoID % width;
-        int row = geoID / height;
+        int x = geoID % width;
+        int y = geoID / width;
 
-        return new GeoCoordinate(col, row);
+        return new GeoCoordinate(x, y);
     }
 }
